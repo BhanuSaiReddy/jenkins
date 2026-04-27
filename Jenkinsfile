@@ -5,7 +5,10 @@ pipeline {
         }
     }
 
-    // 🔹 Parameters (user input before build)
+    triggers {
+        githubPush()
+    }
+
     parameters {
         string(name: 'APP_NAME', defaultValue: 'my-app', description: 'Application Name')
         choice(name: 'ENV', choices: ['dev', 'qa', 'prod'], description: 'Select Environment')
@@ -21,6 +24,29 @@ pipeline {
         stage('Clean Workspace') {
             steps {
                 cleanWs()
+            }
+        }
+
+        stage('Checkout Code') {
+            steps {
+                // 🔹 Replace with your repo
+                git branch: 'main', url: 'https://github.com/your-username/your-repo.git'
+            }
+        }
+
+        stage('Webhook Check') {
+            steps {
+                script {
+                    echo "🔍 Checking trigger source..."
+
+                    def cause = currentBuild.rawBuild.getCause(hudson.triggers.SCMTrigger$SCMTriggerCause)
+
+                    if (cause) {
+                        echo "✅ Triggered by GitHub Webhook!"
+                    } else {
+                        echo "⚠️ Triggered manually or other source"
+                    }
+                }
             }
         }
 
@@ -48,7 +74,7 @@ pipeline {
                     echo "Deploying ${params.APP_NAME} to ${params.ENV}"
 
                     if (params.ENV == 'prod') {
-                        echo "⚠️ Production deployment - approval needed!"
+                        input message: "Approve PROD deployment?", ok: "Deploy"
                     }
                 }
             }
