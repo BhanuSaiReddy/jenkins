@@ -29,22 +29,19 @@ pipeline {
 
         stage('Checkout Code') {
             steps {
-                // 🔹 Replace with your repo
-                git branch: 'main', url: 'https://github.com/your-username/your-repo.git'
+                git branch: 'main', url: 'https://github.com/BhanuSaiReddy/jenkins.git'
             }
         }
 
         stage('Webhook Check') {
             steps {
                 script {
-                    echo "🔍 Checking trigger source..."
-
                     def cause = currentBuild.rawBuild.getCause(hudson.triggers.SCMTrigger$SCMTriggerCause)
 
                     if (cause) {
-                        echo "✅ Triggered by GitHub Webhook!"
+                        echo "Triggered by Webhook"
                     } else {
-                        echo "⚠️ Triggered manually or other source"
+                        echo "Triggered manually"
                     }
                 }
             }
@@ -52,10 +49,8 @@ pipeline {
 
         stage('Build') {
             steps {
-                script {
-                    echo "Building ${params.APP_NAME} version ${VERSION}"
-                    sh 'echo Build step...'
-                }
+                echo "Building ${params.APP_NAME} version ${VERSION}"
+                sh 'echo Build step...'
             }
         }
 
@@ -83,10 +78,10 @@ pipeline {
 
     post {
         success {
-            echo "✅ SUCCESS: ${params.APP_NAME} deployed to ${params.ENV}"
+            echo "SUCCESS: ${params.APP_NAME} deployed to ${params.ENV}"
         }
         failure {
-            echo "❌ FAILURE: ${params.APP_NAME}"
+            echo "FAILURE: ${params.APP_NAME}"
         }
         always {
             cleanWs()
