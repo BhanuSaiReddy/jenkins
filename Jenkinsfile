@@ -5,10 +5,15 @@ pipeline {
         }
     }
 
-    // 🔹 Global variables
+    // 🔹 Parameters (user input before build)
+    parameters {
+        string(name: 'APP_NAME', defaultValue: 'my-app', description: 'Application Name')
+        choice(name: 'ENV', choices: ['dev', 'qa', 'prod'], description: 'Select Environment')
+        booleanParam(name: 'RUN_TESTS', defaultValue: true, description: 'Run tests or not')
+    }
+
     environment {
-        APP_NAME = "my-app"
-        BUILD_ENV = "dev"
+        VERSION = "1.0.${env.BUILD_NUMBER}"
     }
 
     stages {
@@ -22,43 +27,28 @@ pipeline {
         stage('Build') {
             steps {
                 script {
-                    // 🔹 Scripted block
-                    def buildMsg = "Building ${APP_NAME} in ${BUILD_ENV} environment"
-                    echo buildMsg
-
-                    // Example shell
-                    sh 'echo Build step running...'
+                    echo "Building ${params.APP_NAME} version ${VERSION}"
+                    sh 'echo Build step...'
                 }
             }
         }
 
         stage('Test') {
+            when {
+                expression { params.RUN_TESTS == true }
+            }
             steps {
-                script {
-                    // 🔹 Conditional logic (scripted)
-                    def runTests = true
-
-                    if (runTests) {
-                        echo "Running tests..."
-                        sh 'echo Test execution...'
-                    } else {
-                        echo "Skipping tests..."
-                    }
-                }
+                echo "Running tests for ${params.APP_NAME}"
             }
         }
 
         stage('Deploy') {
             steps {
                 script {
-                    echo "Deploying ${APP_NAME}..."
+                    echo "Deploying ${params.APP_NAME} to ${params.ENV}"
 
-                    // 🔹 Try-Catch (scripted feature)
-                    try {
-                        sh 'echo Deployment started...'
-                    } catch (Exception e) {
-                        echo "Deployment failed: ${e}"
-                        currentBuild.result = 'FAILURE'
+                    if (params.ENV == 'prod') {
+                        echo "⚠️ Production deployment - approval needed!"
                     }
                 }
             }
@@ -67,13 +57,11 @@ pipeline {
 
     post {
         success {
-            echo "✅ Build Successful for ${APP_NAME}"
+            echo "✅ SUCCESS: ${params.APP_NAME} deployed to ${params.ENV}"
         }
-
         failure {
-            echo "❌ Build Failed for ${APP_NAME}"
+            echo "❌ FAILURE: ${params.APP_NAME}"
         }
-
         always {
             cleanWs()
         }
