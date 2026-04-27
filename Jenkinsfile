@@ -6,6 +6,13 @@ pipeline {
     }
 
     stages {
+
+        stage('Clean Workspace') {
+            steps {
+                cleanWs()
+            }
+        }
+
         stage('Build') {
             steps {
                 echo 'Building the application...'
@@ -22,6 +29,12 @@ pipeline {
             steps {
                 echo 'Deploying application...'
             }
+        }
+    }
+
+    post {
+        always {
+            cleanWs()
         }
     }
 }
